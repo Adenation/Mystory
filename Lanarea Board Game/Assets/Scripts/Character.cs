@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CharacterCard : MonoBehaviour
+public class Character : MonoBehaviour
 {
     [SerializeField] GameObject equip_left;
     [SerializeField] GameObject equip_right;

@@ -7,16 +7,23 @@ public class Controller : MonoBehaviour
     [SerializeField] GameObject cardBase;
     [SerializeField] GameObject playerBoard;
     [SerializeField] GameObject fieldBoard;
-    Dictionary<CardManager, int> managers; //int represents playerId
+    [SerializeField] GameObject energyBase;
+    Dictionary<Manager, int> managers; //int represents playerId
     // When multiplayer is available change single to list
     // Start is called before the first frame update
     void Start()
     {
-        managers = new Dictionary<CardManager, int>();
+        managers = new Dictionary<Manager, int>();
         //GameObject board = Instantiate(playerBoard);
-        CardManager cm = playerBoard.GetComponent<CardManager>();
+        EnergyManager cm = playerBoard.GetComponent<EnergyManager>();
         managers.Add(cm, 0);
-        
+        List<Energy> l = new List<Energy>() { Instantiate(energyBase).GetComponent<Energy>() };
+        for (int i = 5; i > 0; i--)
+        {
+            l.Add(Instantiate(energyBase).GetComponent<Energy>());
+            
+        }
+        cm.LoadDeck(l);
     }
 
     // Update is called once per frame
@@ -25,20 +32,20 @@ public class Controller : MonoBehaviour
         
     }
     
-    public void DrawCard(CardManager cm)
+    public void DrawCard(EnergyManager cm)
     {
         cm.Draw(1);
     }
-
-    public void LoadDeck(CardManager cm)
+    public void UseCard(EnergyManager cm)
     {
-        for (int i = 16; i > 0; i--)
-        {
-            CardGO card = Instantiate(cardBase).GetComponent<CardGO>();
-            card.Move(cm.GetDeckPile().transform.position,
-                Quaternion.Euler(new Vector3(90f, 0f, 0f)));
-            card.SetCard(new Card("blank", "blank", 0, 0));
-            cm.LoadDeck(card);
-        }
+        cm.Use(1);
+    }
+    public void ConsumeCard(EnergyManager cm)
+    {
+        cm.Consume(1);
+    }
+    public void PlayCard(EnergyManager cm)
+    {
+        cm.Play(cm.GetCards(Manager.HAND)[0], Vector3.zero);
     }
 }
