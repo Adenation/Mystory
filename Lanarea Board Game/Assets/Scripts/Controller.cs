@@ -27,7 +27,8 @@ public class Controller : MonoBehaviour
         List<Energy> l = new List<Energy>();
         for (int i = 6; i > 0; i--)
         {
-            l.Add(Instantiate(energyBase, energyParent).GetComponent<Energy>());
+            Energy e = Instantiate(energyBase, energyParent).GetComponent<Energy>();
+            l.Add(e); e.SetElement(i + 2); // Temp to get elemetns
             
         }
         CharacterSetup(players[0]);

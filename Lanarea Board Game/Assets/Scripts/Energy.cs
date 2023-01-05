@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 public class Energy : MonoBehaviour, ISelectable
 {
@@ -13,6 +14,7 @@ public class Energy : MonoBehaviour, ISelectable
     public const int ENERGY_WATER = 6;
     public const int ENERGY_LIGHT = 7;
     public const int ENERGY_SHADOW = 8;
+
     private readonly float DEFAULT_PATROL_SPEED = 3f;
     private const float SHRINK_SIZE = 0.01f;
     private const float EXPAND_SIZE = 0.5f;
@@ -26,9 +28,12 @@ public class Energy : MonoBehaviour, ISelectable
     private Vector3 nextPatrolPoint;
     private Vector3 nextSize;
 
-    [SerializeField] ParticleSystem halo; // Shows selected.
-    private const float HALO_HOVER_RADIUS = 0.25f;
-    private const float HALO_SELECTED_RADIUS = 0.5f;
+    public static readonly string HALO_NAME = "Selected Spawn Rate";
+
+    [SerializeField] VisualEffect halo; // Shows selected.
+    private const float HALO_SELECTED = 500f;
+    private const float HALO_HOVER = 250f;
+    private const float HALO_OFF = 0f;
 
     [SerializeField] bool isSelected;
 
@@ -38,7 +43,6 @@ public class Energy : MonoBehaviour, ISelectable
         patrolPoints = new List<Vector3>() { Vector3.zero };
         nextPatrolPoint = Vector3.zero;
         arrivedAtOrbit = false;
-        halo.Stop();
         // Default to avoid nulls
     }
 
@@ -161,29 +165,25 @@ public class Energy : MonoBehaviour, ISelectable
     {
         // Turns halos/particle effects etc. on and off
         isSelected = true;
-        halo.Play();
-        var h = halo.shape;
-        h.radius = HALO_SELECTED_RADIUS;
+        halo.SetFloat(HALO_NAME, HALO_SELECTED);
     }
     public void Deselected()
     {
         isSelected = false;
-        halo.Stop();
+        halo.SetFloat(HALO_NAME, HALO_OFF);
     }
     private void OnMouseEnter()
     {
         if (!isSelected)
         {
-            halo.Play();
-            var h = halo.shape;
-            h.radius = HALO_HOVER_RADIUS;
+            halo.SetFloat(HALO_NAME, HALO_HOVER);
         }
     }
     private void OnMouseExit()
     {
         if (!isSelected)
         {
-            halo.Stop();
+            halo.SetFloat(HALO_NAME, HALO_OFF);
         }
     }
 }
