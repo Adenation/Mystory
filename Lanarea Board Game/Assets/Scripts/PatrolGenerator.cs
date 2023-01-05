@@ -41,7 +41,7 @@ public static class PatrolGenerator
             default: //PATROL_SPHERE
                 //add point of orbit
                 patrolPoints.Add(startPoint +
-                    new Vector3(Random.Range(0.1f, 0.25f),
+                    new Vector3(Random.Range(0.15f, 0.25f),
                     Random.Range(0f, 0.1f), Random.Range(0f, 0.01f)));
                 break;
         }

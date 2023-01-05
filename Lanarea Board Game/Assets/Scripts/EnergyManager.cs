@@ -5,6 +5,7 @@ using UnityEngine;
 public class EnergyManager : Manager
 {
     Dictionary<Energy, int> energy_locations;
+    Energy currentlySelectedEnergy;
     // Start is called before the first frame update
     void Start()
     {
@@ -101,6 +102,7 @@ public class EnergyManager : Manager
                 energy.Expand();
                 break;
             case HAND:
+                energy.Deselected();
                 break;
             case BOARD:
                 break;
@@ -112,13 +114,12 @@ public class EnergyManager : Manager
         switch (destination)
         {
             case DECK:
-                energy.Shrink();
                 energy.SetPatrolPoints(
                     new List<Vector3>()
                     {
-                        transform.position,
                         position
                     }, false, false);
+                energy.Shrink();
                 break;
             case HAND:
                 Vector3 offset = new Vector3((HandSize() - 1) / 2f,
@@ -135,18 +136,16 @@ public class EnergyManager : Manager
                 energy.SetPatrolPoints(
                     new List<Vector3>()
                     {
-                        transform.position,
                         position
                     }, false, false);
                 break;
             case VOID:
-                energy.Shrink();
                 energy.SetPatrolPoints(
                     new List<Vector3>()
                     {
-                        transform.position,
                         position
                     }, false, false);
+                energy.Shrink();
                 break;
         }
     }
@@ -177,6 +176,25 @@ public class EnergyManager : Manager
     public string Play(Energy energy, Vector3 charPos)
         { return Move(energy, HAND, BOARD, charPos); }
 
+    public Energy GetCurrentlySelected() { return currentlySelectedEnergy; }
+    public void OnEnergySelected(Energy energy)
+    {
+        if (currentlySelectedEnergy == energy)
+        {
+            energy.Deselected(); // Deselect Self
+            currentlySelectedEnergy = null; // Reset Var
+        }
+        else
+        {
+            if (currentlySelectedEnergy != null)
+            {
+                currentlySelectedEnergy.Deselected(); // Deselect old
+            }
+            currentlySelectedEnergy = energy;
+            currentlySelectedEnergy.Selected(); // Select new
+            GetComponentInParent<Player>().OnEnergySelected(this, energy);
+        }
+    }
 
     // Update is called once per frame
     void Update()

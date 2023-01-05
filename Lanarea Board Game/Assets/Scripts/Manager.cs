@@ -38,5 +38,5 @@ public abstract class Manager : MonoBehaviour
     [SerializeField] protected GameObject deck_Pile;
     [SerializeField] protected GameObject hand_Pile;
     [SerializeField] protected GameObject board_Pile;
-
+    [SerializeField] protected GameObject player_Board;
 }

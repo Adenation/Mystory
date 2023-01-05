@@ -5,25 +5,57 @@ using UnityEngine;
 public class Controller : MonoBehaviour
 {
     [SerializeField] GameObject cardBase;
+    [SerializeField] GameObject characterBase;
     [SerializeField] GameObject playerBoard;
     [SerializeField] GameObject fieldBoard;
     [SerializeField] GameObject energyBase;
-    Dictionary<Manager, int> managers; //int represents playerId
+    [SerializeField] Transform energyParent;
+    [SerializeField] Transform characterParent;
+    [SerializeField] Canvas canvas;
+    List<Player> players;
+    const int MAX_PLAYERS = 3;
     // When multiplayer is available change single to list
     // Start is called before the first frame update
     void Start()
     {
-        managers = new Dictionary<Manager, int>();
+        players = new List<Player>();
         //GameObject board = Instantiate(playerBoard);
-        EnergyManager cm = playerBoard.GetComponent<EnergyManager>();
-        managers.Add(cm, 0);
-        List<Energy> l = new List<Energy>() { Instantiate(energyBase).GetComponent<Energy>() };
-        for (int i = 5; i > 0; i--)
+        EnergyManager em = playerBoard.GetComponent<EnergyManager>();
+        CharacterManager cm = playerBoard.GetComponent<CharacterManager>();
+        UIManager um = playerBoard.GetComponent<UIManager>();
+        players.Add(GetComponent<Player>()); players[0].SetManagers(cm, em, um);
+        List<Energy> l = new List<Energy>();
+        for (int i = 6; i > 0; i--)
         {
-            l.Add(Instantiate(energyBase).GetComponent<Energy>());
+            l.Add(Instantiate(energyBase, energyParent).GetComponent<Energy>());
             
         }
-        cm.LoadDeck(l);
+        CharacterSetup(players[0]);
+        em.LoadDeck(l);
+    }
+
+    void CharacterSetup(Player player)
+    {
+        // Update to be player instead of playerboard once sorted in editor
+        CharacterManager cm = playerBoard.GetComponent<CharacterManager>();
+        UIManager um = playerBoard.GetComponent<UIManager>();
+        List<Character> p = new List<Character>();
+        for (int i = 0; i < MAX_PLAYERS; i++)
+        {
+            Transform child = characterParent.GetChild(i);
+            p.Add(child.GetComponent<Character>());
+        }
+        DisableUnusedCharacters(0); // Update when number of chars is input as parameter
+        cm.LoadCharacters(p);
+        
+    }
+
+    void DisableUnusedCharacters(int number)
+    {
+        for(int i = MAX_PLAYERS - number; i < MAX_PLAYERS; i++)
+        {
+            characterParent.GetChild(i).gameObject.SetActive(false);
+        }
     }
 
     // Update is called once per frame
@@ -48,4 +80,5 @@ public class Controller : MonoBehaviour
     {
         cm.Play(cm.GetCards(Manager.HAND)[0], Vector3.zero);
     }
+
 }

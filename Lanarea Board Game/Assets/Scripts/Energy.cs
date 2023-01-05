@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Energy : MonoBehaviour
+public class Energy : MonoBehaviour, ISelectable
 {
     public const int ENERGY_SWORD = 0;
     public const int ENERGY_SHIELD = 1;
@@ -26,12 +26,19 @@ public class Energy : MonoBehaviour
     private Vector3 nextPatrolPoint;
     private Vector3 nextSize;
 
+    [SerializeField] ParticleSystem halo; // Shows selected.
+    private const float HALO_HOVER_RADIUS = 0.25f;
+    private const float HALO_SELECTED_RADIUS = 0.5f;
+
+    [SerializeField] bool isSelected;
+
     // Start is called before the first frame update
     void Start()
     {
         patrolPoints = new List<Vector3>() { Vector3.zero };
         nextPatrolPoint = Vector3.zero;
         arrivedAtOrbit = false;
+        halo.Stop();
         // Default to avoid nulls
     }
 
@@ -125,13 +132,13 @@ public class Energy : MonoBehaviour
 
     public void Shrink()
     {
-        IsScaling();
+        isScaling = true;
         nextSize = new Vector3(SHRINK_SIZE, SHRINK_SIZE, SHRINK_SIZE);
     }
 
     public void Expand()
     {
-        IsScaling();
+        isScaling = true;
         nextSize = new Vector3(EXPAND_SIZE, EXPAND_SIZE, EXPAND_SIZE);
     }
 
@@ -142,6 +149,41 @@ public class Energy : MonoBehaviour
         if(transform.localScale == nextSize)
         {
             isScaling = false;
+        }
+    }
+
+    private void OnMouseDown()
+    {
+        GetComponentInParent<EnergyManager>().OnEnergySelected(this);
+        Debug.Log("Energy has been clicked ");
+    }
+    public void Selected()
+    {
+        // Turns halos/particle effects etc. on and off
+        isSelected = true;
+        halo.Play();
+        var h = halo.shape;
+        h.radius = HALO_SELECTED_RADIUS;
+    }
+    public void Deselected()
+    {
+        isSelected = false;
+        halo.Stop();
+    }
+    private void OnMouseEnter()
+    {
+        if (!isSelected)
+        {
+            halo.Play();
+            var h = halo.shape;
+            h.radius = HALO_HOVER_RADIUS;
+        }
+    }
+    private void OnMouseExit()
+    {
+        if (!isSelected)
+        {
+            halo.Stop();
         }
     }
 }
