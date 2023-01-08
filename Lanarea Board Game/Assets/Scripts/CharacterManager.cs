@@ -78,6 +78,7 @@ public class CharacterManager : Manager
     }
 
     public Character GetCurrentlySelected() { return currentlySelectedCharacter; }
+    public int GetCurrentlySelectedIndex() { return characters.IndexOf(currentlySelectedCharacter); }
     public void OnCharacterSelected(Character character)
     {
         if (currentlySelectedCharacter != null)

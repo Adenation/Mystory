@@ -5,19 +5,33 @@ using UnityEngine;
 public class EnergyManager : Manager
 {
     Dictionary<Energy, int> energy_locations;
-    Energy currentlySelectedEnergy;
-    // Start is called before the first frame update
-    void Start()
+    Dictionary<Energy, EnergyBody> energy_bodies;
+    Dictionary<EnergyBody, Energy> inverse_energy_bodies;
+    EnergyBody currentlySelectedEnergy;
+    [SerializeField] List<GameObject> energyBase;
+    private static string HAND_FULL_STRING = "Hand limit reached, can't draw anymore.";
+
+    private static int maxHandSize = 9;
+
+    void Awake()
     {
         energy_locations = new Dictionary<Energy, int>();
     }
 
-    public void LoadDeck(List<Energy> energies)
+    public void LoadDeck(List<Energy> deck)
     {
-        foreach (Energy energy in energies)
+        energy_bodies = new Dictionary<Energy, EnergyBody>();
+        inverse_energy_bodies = new Dictionary<EnergyBody, Energy>();
+        foreach (Energy e in deck)
         {
-            energy_locations.Add(energy, DECK);
-            energy.transform.position = deck_Pile.transform.position;
+            GameObject go = Instantiate(energyBase[e.GetElement()], transform);
+            // The energy manager is attached to the energy pile where all
+            // energy bodies should be children
+            EnergyBody eb = go.GetComponent<EnergyBody>();
+            energy_bodies.Add(e, eb);
+            inverse_energy_bodies.Add(eb, e);
+            energy_locations.Add(e, DECK);
+            eb.transform.position = deck_Pile.transform.position;
         }
     }
     public List<Energy> GetCards(int location)
@@ -99,12 +113,14 @@ public class EnergyManager : Manager
         switch (source)
         {
             case DECK:
-                energy.Expand();
+                energy_bodies[energy].Expand();
                 break;
             case HAND:
-                energy.Deselected();
+                energy_bodies[energy].Deselected();
+                energy_bodies[energy].Shrink();
                 break;
             case BOARD:
+                energy_bodies[energy].Expand();
                 break;
             case VOID:
                 // Nothing escapes the void
@@ -114,12 +130,12 @@ public class EnergyManager : Manager
         switch (destination)
         {
             case DECK:
-                energy.SetPatrolPoints(
+                energy_bodies[energy].SetPatrolPoints(
                     new List<Vector3>()
                     {
                         position
                     }, false, false);
-                energy.Shrink();
+                energy_bodies[energy].Shrink();
                 break;
             case HAND:
                 Vector3 offset = new Vector3((HandSize() - 1) / 2f,
@@ -128,24 +144,25 @@ public class EnergyManager : Manager
                 position += offset;
                 //Debug.Log(hand_Pile.transform.parent);
                 Camera cam = hand_Pile.GetComponentInParent<Camera>();
-                energy.SetPatrolPoints(
+                energy_bodies[energy].SetPatrolPoints(
                     PatrolGenerator.GenerateScreenPatrolPoints(
                         cam, position, 0, 1, 0, 0.2f, 1), false, true);
                 break;
             case BOARD:
-                energy.SetPatrolPoints(
+                energy_bodies[energy].SetPatrolPoints(
                     new List<Vector3>()
                     {
                         position
                     }, false, false);
                 break;
+
             case VOID:
-                energy.SetPatrolPoints(
+                energy_bodies[energy].SetPatrolPoints(
                     new List<Vector3>()
                     {
                         position
                     }, false, false);
-                energy.Shrink();
+                energy_bodies[energy].Shrink();
                 break;
         }
     }
@@ -164,8 +181,22 @@ public class EnergyManager : Manager
         return count;
     }
 
-    public string Draw(Energy energy) { return Move(energy, DECK, HAND); }
-    public string Draw(int amount) { return Move(amount, DECK, HAND); }
+    public string Draw(Energy energy)
+    {
+        if(HandSize() == maxHandSize)
+        {
+            return HAND_FULL_STRING;
+        }
+        return Move(energy, DECK, HAND);
+    }
+    public string Draw(int amount)
+    {
+        if (HandSize() == maxHandSize)
+        {
+            return HAND_FULL_STRING;
+        }
+        return Move(amount, DECK, HAND);
+    }
     public string Use(Energy energy) { return Move(energy, BOARD, DECK); }
     public string Use(int amount) { return Move(amount, BOARD, DECK); }
     public string Consume(Energy energy) { return Move(energy, BOARD, VOID); }
@@ -173,11 +204,12 @@ public class EnergyManager : Manager
     // User will click on an energy in their hand and then click on the
     // character they wish to attach it to. The click events are managed by
     // the controller which will pass in the position of the character
-    public string Play(Energy energy, Vector3 charPos)
-        { return Move(energy, HAND, BOARD, charPos); }
+    public string Play(EnergyBody energyBody, Vector3 charPos)
+    {        return Move(inverse_energy_bodies[energyBody], HAND, BOARD, charPos);
+    }
 
-    public Energy GetCurrentlySelected() { return currentlySelectedEnergy; }
-    public void OnEnergySelected(Energy energy)
+    public EnergyBody GetCurrentlySelected() { return currentlySelectedEnergy; }
+    public void OnEnergySelected(EnergyBody energy)
     {
         if (currentlySelectedEnergy == energy)
         {
@@ -195,6 +227,11 @@ public class EnergyManager : Manager
             GetComponentInParent<Player>().OnEnergySelected(this, energy);
         }
     }
+
+    public Dictionary<Energy, EnergyBody> GetEnergyBodies() { return energy_bodies; }
+
+    public Energy GetEnergyFromBody(EnergyBody eb) { return inverse_energy_bodies[eb]; }
+    public EnergyBody GetBodyFromEnergy(Energy e) { return energy_bodies[e]; }
 
     // Update is called once per frame
     void Update()

@@ -10,6 +10,10 @@ public class Character : MonoBehaviour, ISelectable
     bool isSelected;
     List<Energy> energies;
     const int MAX_ENERGY = 6;
+
+    public static string CHARACTER_MAX_ENERGY = "Character is at their " +
+        "energy limit of " + MAX_ENERGY + ".";
+
     Card item;
 
     private Attributes stats;
@@ -29,7 +33,7 @@ public class Character : MonoBehaviour, ISelectable
     public Card GetItem() { return item; }
     public void SetItem(Card card) { item = card; }
     public List<Energy> GetEnergy() { return energies; }
-    public void SetEnergy(Energy energy)
+    public void AbsorbEnergy(Energy energy)
     {
         energies.Add(energy);
     }
@@ -56,5 +60,19 @@ public class Character : MonoBehaviour, ISelectable
     public void Deselected()
     {
 
+    }
+
+    public bool CheckEnergyCount()
+    {
+        if (energies.Count == MAX_ENERGY) 
+        {
+            return false;
+        }
+        else if (energies.Count > MAX_ENERGY)
+        {
+            Debug.Log("Player has more energy than cap");
+            // Report as error and handle
+        }
+        return true;
     }
 }

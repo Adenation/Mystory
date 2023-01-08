@@ -8,8 +8,6 @@ public class Controller : MonoBehaviour
     [SerializeField] GameObject characterBase;
     [SerializeField] GameObject playerBoard;
     [SerializeField] GameObject fieldBoard;
-    [SerializeField] GameObject energyBase;
-    [SerializeField] Transform energyParent;
     [SerializeField] Transform characterParent;
     [SerializeField] Canvas canvas;
     List<Player> players;
@@ -20,26 +18,20 @@ public class Controller : MonoBehaviour
     {
         players = new List<Player>();
         //GameObject board = Instantiate(playerBoard);
-        EnergyManager em = playerBoard.GetComponent<EnergyManager>();
-        CharacterManager cm = playerBoard.GetComponent<CharacterManager>();
-        UIManager um = playerBoard.GetComponent<UIManager>();
-        players.Add(GetComponent<Player>()); players[0].SetManagers(cm, em, um);
-        List<Energy> l = new List<Energy>();
-        for (int i = 6; i > 0; i--)
-        {
-            Energy e = Instantiate(energyBase, energyParent).GetComponent<Energy>();
-            l.Add(e); e.SetElement(i + 2); // Temp to get elemetns
-            
-        }
+
+        players.Add(GetComponentInChildren<Player>());  //temp until boards are instantiated
+        EnergyManager em = players[0].GetEM();
+        CharacterManager cm = players[0].GetCM();
+        UIManager um = players[0].GetUM();
         CharacterSetup(players[0]);
-        em.LoadDeck(l);
     }
 
     void CharacterSetup(Player player)
     {
         // Update to be player instead of playerboard once sorted in editor
-        CharacterManager cm = playerBoard.GetComponent<CharacterManager>();
-        UIManager um = playerBoard.GetComponent<UIManager>();
+        EnergyManager em = players[0].GetEM();
+        CharacterManager cm = players[0].GetCM();
+        UIManager um = players[0].GetUM();
         List<Character> p = new List<Character>();
         for (int i = 0; i < MAX_PLAYERS; i++)
         {
@@ -79,7 +71,7 @@ public class Controller : MonoBehaviour
     }
     public void PlayCard(EnergyManager cm)
     {
-        cm.Play(cm.GetCards(Manager.HAND)[0], Vector3.zero);
+        cm.Play(cm.GetEnergyBodies()[cm.GetCards(Manager.HAND)[0]], Vector3.zero);
     }
 
 }
